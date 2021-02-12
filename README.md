@@ -8,4 +8,4 @@ All source data used in the analysis is publically available from the CDC, [here
 [![DOI](https://zenodo.org/badge/338362330.svg)](https://zenodo.org/badge/latestdoi/338362330)
 
 ## Corresponding Author
-- Travis Campbel -- Contact me at tbcampbell@umass.edu
+- Travis Campbell -- Contact me at tbcampbell@umass.edu
