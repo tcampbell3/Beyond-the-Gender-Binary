@@ -9,7 +9,6 @@ set more off
 cd "${path}"
 eststo clear
 
-
 * Program P-Value
 cap program drop pvalue
 program pvalue, rclass
@@ -44,16 +43,16 @@ local genders = "ciswomen m2f f2m non"
 
 * Loop outcomes
 local coltitle=""
-foreach outcome in laborforce employ unemploy homemaker poverty { 
+foreach outcome in laborforce employ unemploy { 
 	
 	* Index column
 	local c = `c' + 1
-	local colpost="`colpost' & (`c')"
 
 	* Estimate regression
 	reghdfe `outcome' `genders' [aweight=_llcpwt] , vce(cluster _psu) a($X)
 	eststo col`c'
 	estadd local blank=""	
+	estadd local col="(`c')"
 	
 	* Save estimate for each gender
 	foreach g in `genders' {
@@ -71,23 +70,16 @@ foreach outcome in laborforce employ unemploy homemaker poverty {
 		
 	}
 	
-	* column title
+	* Column title
 	if "`outcome'" == "laborforce"{
-		estadd local coltitle "Labor force"
+		estadd local coltitle "Labor force participation"
 	}
 	if "`outcome'" == "employ"{
 		estadd local coltitle "Employment"
 	}
 	if "`outcome'" == "unemploy"{
 		estadd local coltitle "Unemployment"
-	}
-	if "`outcome'" == "homemaker"{
-		estadd local coltitle "Homemaker"
-	}
-	if "`outcome'" == "poverty"{
-		estadd local coltitle "Poverty"
-	}
-	
+	}	
 	
 }
 
@@ -97,17 +89,18 @@ foreach outcome in laborforce employ unemploy homemaker poverty {
   // 3) Save benchmark estimates table
 *******************************************
 
-
-esttab col1 col2 col3 col4 col5	using Tables_and_Figures/benchmark_iden.tex,	///
+esttab col1 col2 col3 using Tables_and_Figures/benchmark_iden.tex,				///
 	stats(																		///
-		ciswomen ciswomen_se													/// Ciswomen rows
+		col coltitle ciswomen ciswomen_se										/// Ciswomen rows
 		m2f m2f_se																/// M2F rows
 		f2m f2m_se																/// F2M rows
 		non non_se																/// Nonconforming rows
-		coltitle N r2,															/// Bottom rows
-		fmt(0 0 0 0 0 0 0 0 0 0 2)												/// Rounding
+		N r2,																	/// Bottom rows
+		fmt(0 0 0 0 0 0 0 0 0 0 0 2)											/// Rounding
 		label(																	/// ROW LABELS
-			"Ciswomen" 															/// 
+			" "																	///
+			"\midrule \textbf{Dependent variable:}"								/// 
+			"\midrule Ciswomen" 												/// 
 			" "																	///
 			"Transwomen" 														/// 
 			" "																	///
@@ -115,13 +108,10 @@ esttab col1 col2 col3 col4 col5	using Tables_and_Figures/benchmark_iden.tex,	///
 			" "																	///
 			"Gender Nonconforming"						 						/// 
 			" "																	///
-			"\midrule Dependent variable"										/// 
-			"Observations"														/// 
+			"\midrule Observations"												/// 
 			"\$R^2\$"															/// 
 			)																	///
 		)																		///
 	keep( ) replace nomtitles nonotes booktabs nogap nolines nolines nonum		///
-	prehead(\begin{tabular}{l*{11}{x{1.75cm}}}\toprule) 						///
-	posthead(`colpost' \\\midrule)												/// COLUMN NUMBERS
+	prehead(\begin{tabular}{l*{11}{x{2.4cm}}}\toprule) 						///
 	postfoot(\bottomrule \end{tabular}) 
-

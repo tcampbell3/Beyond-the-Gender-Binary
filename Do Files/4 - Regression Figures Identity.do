@@ -1,67 +1,81 @@
-* Clear all frames and open data
+* Open data
 clear all
 use "Data/DTA/final", clear
+global ylab=""
+global ylab2=""
 
-* Create verticle regression framecap frame drop roc
-tempname figure											// temp frame name
-cap frame drop `figure'
-frame create `figure' x str10(gender) est upper lower
-
-* Estimtes
-local genders = "ciswomen m2f f2m non"
-reghdfe ${outcome} `genders' [aweight=_llcpwt] , vce(cluster _psu) a($X)
-
-
-**** Store Estimates for figure ****
-
-local j=1
-foreach g in `genders'{
-	
-	* Local estimates for figure
+* Program to save space
+cap program drop _figs
+program _figs
+	syntax [, j(int 50) g(varlist)]
 	lincom `g'
-	local gender = proper("`g'") 
-	
-	* Append values to figure frame
-	frame post `figure' (`j') ("`gender'") (r(estimate)) (r(ub)) (r(lb))
-	local j = `j' + 1
-
-}
-
-* Labels
-frame `figure'{
-
-	* Variable labels
-	replace gender = "Male-to-female" if gender == "M2F"
-	replace gender = "Female-to-male" if gender == "F2M"
-	replace gender = "Nonconforming" if gender == "Non"
-	labmask x, values(gender)
-
-	* Legend Labels
-	forvalues i = 1/4{
-		levelsof gender if x == `i', clean
-		local disc = r(levels)
-		local label`i' = "[`i'] `disc'"
+	replace est=r(estimate) in `j'
+	replace ub=r(ub) in `j'
+	replace lb=r(lb) in `j'
+	replace i = `j' in `j'
+	if "`g'"=="ciswomen"{
+		global ylab=`"${ylab} `j' "Ciswomen""'
 	}
+	if "`g'"=="m2f"{
+		global ylab=`"${ylab} `j' "Transwomen""'
+	}
+	if "`g'"=="f2m"{
+		global ylab=`"${ylab} `j' "Transmen""'
+	}
+	if "`g'"=="non"{
+		global ylab=`"${ylab} `j' "Nonconforming""'
+	}
+	local b=round(r(estimate),.001)
+	local se=round(r(se),.001)
+	global ylab2=`"${ylab2} `j' "`b' (`se')""'
+	end
+
+* Store Estimates for figure
+local ylab=""
+g est=.
+g ub=.
+g lb=.
+g i=.
+local j=1
+foreach y in laborforce employed unemployed{
+
+	* Estimtes
+	reghdfe `y' ciswomen m2f f2m non [aweight=_llcpwt] , vce(cluster _psu) a($X)
+
+	* Outcome
+	if "`y'" == "employed"{
+		global ylab=`"${ylab} `j' "{bf:Outcome}: {it:Employment}""'
+	}
+	if "`y'" == "laborforce"{
+		global ylab=`"${ylab} `j' "{bf:Outcome}: {it:Labor force}""'
+	}
+	if "`y'" == "unemployed"{
+		global ylab=`"${ylab} `j' "{bf:Outcome}: {it:Unemployment}""'
+	}
+	local j=`j'+1
+
+	* Loop genders
+	foreach g in ciswomen m2f f2m non{
+		_figs , j(`j') g(`g')
+		local j=`j'+1
+	}
+	local j=`j'+1
+	di "`j'"
 	
-
-
+}
 
 * Plot
-g est2=est-.001
-twoway (rbar upper lower x if x == 1, color("225 0 0 %60") lcolor("225 0 0") barw(.6))			///
-(rbar est est2 x if x == 1 , color("200 200 200 200") lcolor("200 200 200 200")  barw(.585)) 	///
-(rbar upper lower x if x == 2 , color("225 225 0 %60") lcolor("225 225 0") barw(.6))			///
-(rbar est est2 x if x == 2 , color("200 200 200 200") lcolor("200 200 200 200")  barw(.585))	///
-(rbar upper lower x  if x == 3 , color("0 225 0 %60") lcolor("0 225 0") barw(.6))				///
-(rbar est est2 x if x == 3 , color("200 200 200 200") lcolor("200 200 200 200")  barw(.585))	///
-(rbar upper lower x  if x == 4 , color("0 150 225 %60") lcolor("0 150 225") barw(.6))			///
-(rbar est est2 x if x == 4 , color("200 200 200 200") lcolor("200 200 200 200")  barw(.585))	///
-(rbar upper lower x  if x == 5 , color("200 0 225 %60") lcolor("200 0 225") barw(.6))			///
-(rbar est est2 x if x == 5 , color("200 200 200 200") lcolor("200 200 200 200")  barw(.585)) 	///
-, scheme(plotplain) xtitle(Gender identity and sex) ytitle("${ytitle1}" "${ytitle2}")  ${yaxis} xlabel(1(1)4, val) ///
-yline(0, lcol(black) lp(solid)) legend(size(small) position(6) ring(3) col(5) colfirst order(1 "`label1'" 3 "`label2'" 5 "`label3'" 7 "`label4'" 9 "`label5'"))
+sum i, meanonly
+local max=r(max)
+local min=r(min)-1
 
-graph export "Tables_and_Figures/${outcome}_regiden.pdf", replace
+keep if !inlist(i,.)
+twoway 	(rcap ub lb i, lc("247 168 184") lp(solid) lw(thick) msize(medlarge)) 	///
+		(scatter est i, ms(D) msiz(medlarge) mc("85 205 252") mlc(black%50))	///
+		(scatter est i, ms(D) msiz(tiny) mc(black%0) mlc(black%0) xaxis(2))		///
+		, xlab(`max' " " `min' " " ${ylab}, angle(vertical) labsize(medium)) 	///
+		xlab(`max' " " `min' " " ${ylab2}, angle(vertical) labsize(medium) axis(2))	///
+		legend(off) yline(0) ysc(alt) ylab(,angle(vertical) labsize(medium)) 	///
+		xtitle("") xtitle("",axis(2)) xsize(6) xsc(titlegap(-6)) xsc(titlegap(-6) axis(2))
 
-}
-
+graph export "Tables_and_Figures/Basline-identity.pdf", replace

@@ -35,13 +35,15 @@ local c=0
 ******************************
 
 * Loop Gender
-foreach gender in ciswomen cismen { 
+local col=9
+foreach gender in cismen ciswomen { 
 	
 	* Index column
 	local c = `c' + 1
+	local col=`col'+1
 	est restore dummy
 	eststo col`c'
-	local colpost="`colpost' & (`c')"
+	estadd local col="(`col')"
 	estadd local blank=""	
 		
 	* Loop indicators rows
@@ -155,13 +157,15 @@ recode children (88=0) (99=.)
 *****************************************
 
 * Loop Gender
-foreach gender in ciswomen cismen m2f f2m non { 
+local col=0
+foreach gender in cismen ciswomen m2f f2m non { 
 	
 	* Index column
 	local c = `c' + 1
+	local col=`col'+1
 	est restore dummy
 	eststo col`c'
-	local colpost="`colpost' & (`c')"
+	estadd local col="(`col')"
 	estadd local blank=""	
 	
 	* Loop indicators rows
@@ -215,9 +219,10 @@ foreach gender in ciswomen cismen m2f f2m non {
 
 * Index column
 local c = `c' + 1
+local col=`col'+1
 est restore dummy
 eststo col`c'
-local colpost="`colpost' & (`c')"
+estadd local col="(`col')"
 estadd local blank=""
 
 * Employment
@@ -252,10 +257,11 @@ estadd local gender = "M2F"
 /***** NDTS Transmen *****/
 
 * Index column
-local c = `c' + 1
+local c = `c' + 1	
+local col=`col'+1
 est restore dummy
 eststo col`c'
-local colpost="`colpost' & (`c')"
+estadd local col="(`col')"
 estadd local blank=""
 
 * Employment
@@ -291,9 +297,10 @@ estadd local gender = "F2M"
 
 * Index column
 local c = `c' + 1
+local col=`col'+1
 est restore dummy
 eststo col`c'
-local colpost="`colpost' & (`c')"
+estadd local col="(`col')"
 estadd local blank=""
 
 * Employment
@@ -337,9 +344,10 @@ estadd local gender = "M2F"
 
 * Index column
 local c = `c' + 1
+local col=`col'+1
 est restore dummy
 eststo col`c'
-local colpost="`colpost' & (`c')"
+estadd local col="(`col')"
 estadd local blank=""
 
 * Employment
@@ -389,16 +397,18 @@ estadd local gender = "F2M"
 esttab col3 col4 col5 col6 col7 col8 col9 col10 col11 col1 col2 				///
 	using Tables_and_Figures/lit_review.tex,									///
 	stats(																		///
-		blank blank no_lfp unemployed employed 									/// Labor force rows
+		gender col blank blank no_lfp unemployed employed 							/// Labor force rows
 		blank _18 _25 _45 _64													/// Age rows
 		blank native asian biracial black hispanic white						/// Race rows
 		blank lt_high_school high_school some_college nobach college graduate	/// Education rows
 		marital disabled incongruence											/// Other categorical rows
 		blank age age_sd children children_sd									/// Continuous wows
-		gender obs years source,												/// Bottom rows
-		fmt(1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0)	/// Rounding
+		obs years source,														/// Bottom rows
+		fmt(1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0)	/// Rounding
 		label(																	/// ROW LABELS
-			"\addlinespace[0.3cm]\underline{\textit{Percentages}}" 				/// ROW LABEL 1
+			" "																	/// 
+			" "																	///
+			"\midrule\addlinespace[0.3cm]\underline{\textit{Percentages}}" 		/// ROW LABEL 1
 			"\addlinespace[0.3cm]Labor force status"							/// ROW LABEL 2
 			"\addlinespace[0.1cm]\hspace{.25cm}Not in the labor force" 			/// ROW LABEL 3...
 			"\addlinespace[0.1cm]\hspace{.25cm}Unemployed" 						/// 
@@ -430,8 +440,7 @@ esttab col3 col4 col5 col6 col7 col8 col9 col10 col11 col1 col2 				///
 			"\addlinespace[0.1cm]" 												///
 			"\addlinespace[0.3cm]Children"										/// 
 			"\addlinespace[0.1cm]" 												///			
-			"\addlinespace[0.3cm] \midrule Sex/gender"							/// 
-			"\addlinespace[0.1cm]Observations"									/// 
+			"\addlinespace[0.3cm]\midrule Observations"							/// 
 			"\addlinespace[0.1cm]Years"											///
 			"\addlinespace[0.1cm]Source"										///
 			)																	///
@@ -442,6 +451,6 @@ esttab col3 col4 col5 col6 col7 col8 col9 col10 col11 col1 col2 				///
 		& \multicolumn{5}{c}{BRFSS} & \multicolumn{2}{c}{NDTS}					/// COLUMN HEADERS
 		& \multicolumn{2}{c}{USTS}	& \multicolumn{2}{c}{CPS}					/// COLUMN HEARERS
 		\\\cmidrule(lr){2-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}	/// UNDERLINE
-		`colpost' \\\midrule)													/// COLUMN NUMBERS
+		)																		/// 
 	postfoot(\bottomrule \end{tabular}) 
 

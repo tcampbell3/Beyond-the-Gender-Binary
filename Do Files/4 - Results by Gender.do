@@ -29,7 +29,7 @@ local i=0
 foreach gender in m2f f2m non ciswomen cismen{
 	local i=`i'+1
 
-	foreach var in homemaker laborforce unemployed poverty {
+	foreach var in laborforce employed unemployed {
 
 		reg `var' express perc $X [pweight=_llcpwt] if(`gender'==1), vce(cluster _psu)
 			//Express
@@ -79,61 +79,57 @@ di "`row5_2'"
 
 texdoc i "Tables_and_Figures/est_by_gender", replace
 
-
-*** //Header ***
 /*tex
-\begin{tabular}{l*{9}{c}}
+\begin{tabular}{l*{11}{x{1.6cm}}}
 \toprule[.05cm]
- & \multicolumn{2}{c}{Homemaker}&\multicolumn{2}{c}{Labor Force}&\multicolumn{2}{c}{Unemployed}&\multicolumn{2}{c}{Poverty} \\
-\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
-&Beta&(SE)&Beta&(SE)&Beta&(SE)&Beta&(SE)\\
+ & \multicolumn{2}{c}{Labor Force}&\multicolumn{2}{c}{Employment}&\multicolumn{2}{c}{Unemployment} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} 
+&Beta&(SE)&Beta&(SE)&Beta&(SE)\\
  \midrule
 tex*/
 
 
-*** //Body ***
+* Cismen
+tex \textit{Cisgender Men} &\\
+tex \quad Expression `row1_5' \\
+tex \quad Perception `row2_5' \\
+tex \quad Constant `row3_5' \\
+tex \quad N `row4_5' \\
+tex \quad \$R^{2}\$ `row5_5' \\\\
 
-//M2F
-tex \multicolumn{3}{l}{\textit{Transgender Women}}&  \\
-tex \quad Expression `row1_1' \\
-tex \quad Perception `row2_1' \\
-tex \quad Constant `row3_1' \\
-tex \quad N `row4_1' \\
-tex \quad \$R^{2}\$ `row5_1' \\\\
-
-//F2M
-tex \multicolumn{3}{l}{\textit{Transgender Men}} &\\
-tex \quad Expression `row1_2' \\
-tex \quad Perception `row2_2' \\
-tex \quad Constant `row3_2' \\
-tex \quad N `row4_2' \\
-tex \quad \$R^{2}\$ `row5_2' \\\\
-
-//Non
-tex \multicolumn{3}{l}{\textit{Gender Nonconforming}} &\\
-tex \quad Expression `row1_3' \\
-tex \quad Perception `row2_3' \\
-tex \quad Constant `row3_3' \\
-tex \quad N `row4_3' \\
-tex \quad \$R^{2}\$ `row5_3' \\\\
-
-//Marital
-tex \multicolumn{3}{l}{\textit{Cisgender Women}} &\\
+* Ciswomen
+tex \textit{Cisgender Women} &\\
 tex \quad Expression `row1_4' \\
 tex \quad Perception `row2_4' \\
 tex \quad Constant `row3_4' \\
 tex \quad N `row4_4' \\
 tex \quad \$R^{2}\$ `row5_4' \\\\
 
-//Metro
-tex \multicolumn{3}{l}{\textit{Cisgender Men}} &\\
-tex \quad Expression `row1_5' \\
-tex \quad Perception `row2_5' \\
-tex \quad Constant `row3_5' \\
-tex \quad N `row4_5' \\
-tex \quad \$R^{2}\$ `row5_5' \\
 
-//End
+* M2F
+tex \textit{Transgender Women}&  \\
+tex \quad Expression `row1_1' \\
+tex \quad Perception `row2_1' \\
+tex \quad Constant `row3_1' \\
+tex \quad N `row4_1' \\
+tex \quad \$R^{2}\$ `row5_1' \\\\
+
+* F2M
+tex \textit{Transgender Men} &\\
+tex \quad Expression `row1_2' \\
+tex \quad Perception `row2_2' \\
+tex \quad Constant `row3_2' \\
+tex \quad N `row4_2' \\
+tex \quad \$R^{2}\$ `row5_2' \\\\
+
+* Nonconforming
+tex \textit{Gender Nonconforming} &\\
+tex \quad Expression `row1_3' \\
+tex \quad Perception `row2_3' \\
+tex \quad Constant `row3_3' \\
+tex \quad N `row4_3' \\
+tex \quad \$R^{2}\$ `row5_3' \\
+
 /*tex
 \bottomrule[.03cm]
 \end{tabular}

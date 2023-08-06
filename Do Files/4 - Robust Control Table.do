@@ -1,45 +1,196 @@
 cd "${path}"
 use "Data\DTA\final.dta", clear
 
-local genders = "fem_cismen masc_ciswomen fem_ciswomen masc_masc_m2f masc_fem_m2f fem_masc_m2f fem_fem_m2f masc_masc_f2m masc_fem_f2m fem_masc_f2m fem_fem_f2m masc_masc_non masc_fem_non fem_masc_non fem_fem_non"	
+local genders = "fem_cismen masc_ciswomen fem_ciswomen masc_m2f fem_m2f inc_m2f masc_f2m fem_f2m inc_f2m masc_non fem_non inc_non"	
 
-* Labels
-label var masc_cismen "Masculine Cismen"
-label var fem_cismen "Feminine Cismen"
-label var masc_ciswomen "Masculine Ciswomen"
-label var fem_ciswomen "Feminine Ciswomen"
-label var masc_masc_m2f "Masc-Masc M2F"
-label var fem_masc_m2f "Femme-Masc M2F"
-label var masc_fem_m2f "Masc-Femme M2F"
-label var fem_fem_m2f "Femme-Femme M2F"
-label var masc_masc_f2m "Masc-Masc F2M"
-label var fem_masc_f2m "Femme-Masc F2M"
-label var masc_fem_f2m "Masc-Femme F2M" 
-label var fem_fem_f2m "Femme-Femme F2M"
-label var masc_masc_non "Masc-Masc Non"
-label var fem_masc_non "Femme-Masc Non"
-label var masc_fem_non  "Masc-Femme Non"
-label var fem_fem_non 	"Femme-Femme Non"
+* Program P-Value
+cap program drop pvalue
+program pvalue, rclass
+	version 15
+	syntax  anything
+	local p=`1'
+	local star=" "
+	if `p'<=.1{
+		local star="\$^{*}\$"
+		}
+	if `p'<=.05{
+		local star="\$^{**}\$"
+		}
+	if `p'<=.01{
+		local star="\$^{***}\$"
+		}
+	return local star="`star'"
+	end	
 
+* Program to save space
+cap program drop _store
+program _store
+	syntax [, genders(varlist) outcome(varlist)]
+	eststo
+	
+	* Save estimate for each gender
+	foreach g in `genders' {
+		local se = int(round(_se[`g']*1000))/1000
+		local beta = int(round(_b[`g']*1000))/1000
+		quietly test `g'
+		pvalue r(p)
+		local star=r(star)	
+		estadd local `g' "`beta'`star'"
+		estadd local `g'_se "(`se')"
+	}
+	
+	* Column title
+	if "`outcome'" == "laborforce"{
+		estadd local coltitle "Labor force participation"
+	}
+	if "`outcome'" == "employed"{
+		estadd local coltitle "Employment"
+	}
+	if "`outcome'" == "unemployed"{
+		estadd local coltitle "Unemployment"
+	}
+	end
 
-********************************************************************************
-************************							****************************
-************************		Robustness			****************************
-************************							****************************
-********************************************************************************
-foreach var in homemaker laborforce unemployed poverty{
-eststo clear
-	reg `var' `genders' ${g1} [aweight=_llcpwt], vce(cluster _psu) 
-		eststo
-	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) a($g2)
-		eststo	
-	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) a($g3)
-		eststo	
-	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) a($g4)
-		eststo	
-	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) a($g5)
-		eststo	
-	esttab using Tables_and_Figures/`var'_subset.tex , nogaps keep(`genders' _cons) replace star(* 0.10 ** 0.05 *** 0.01) label stats(N r2,  fmt(0 2) label("N" "\$R^2\$")) mtitles("G1" "G2" "G3" "G4" "G5") se(3) nonumbers nonotes b(2)		
+* Loop outcomes for each table
+foreach var in laborforce employed unemployed{
+	
+	* Specification 1
+	eststo clear
+	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) noabsorb
+	_store , genders(`genders') outcome(`var')
+	local c=1
+	estadd local col = "(`c')"
+	estadd local cell = ""
+	estadd local state = ""
+	estadd local time = ""
+	estadd local metro = ""
+	estadd local race = ""
+	estadd local age = ""
+	estadd local edu = ""
+	estadd local sexi = ""
+	estadd local mari = ""
+	
+	* Specification 2
+	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) 				///
+	a(numadult#cellphone)
+	_store , genders(`genders') outcome(`var')
+	local c=`c'+1
+	estadd local col = "(`c')"
+	estadd local cell = "\checkmark"
+	estadd local state = ""
+	estadd local time = ""
+	estadd local metro = ""
+	estadd local race = ""
+	estadd local age = ""
+	estadd local edu = ""
+	estadd local sexi = ""
+	estadd local mari = ""
+	
+	* Specification 3
+	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) 				///
+	a(numadult#cellphone state time metro)
+	_store , genders(`genders') outcome(`var')
+	local c=`c'+1
+	estadd local col = "(`c')"
+	estadd local cell = "\checkmark"
+	estadd local state = "\checkmark"
+	estadd local time = "\checkmark"
+	estadd local metro = "\checkmark"
+	estadd local race = ""
+	estadd local age = ""
+	estadd local edu = ""
+	estadd local sexi = ""
+	estadd local mari = ""
+	
+	* Specification 4
+	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) 				///
+	a(numadult#cellphone state time metro race age education)
+	_store , genders(`genders') outcome(`var')
+	local c=`c'+1
+	estadd local col = "(`c')"
+	estadd local cell = "\checkmark"
+	estadd local state = "\checkmark"
+	estadd local time = "\checkmark"
+	estadd local metro = "\checkmark"
+	estadd local race = "\checkmark"
+	estadd local age = "\checkmark"
+	estadd local edu = "\checkmark"
+	estadd local sexi = ""
+	estadd local mari = ""
+	
+	* Specification 5
+	reghdfe `var' `genders' [aweight=_llcpwt], vce(cluster _psu) 				///
+	a(numadult#cellphone state time metro race age education sexuality marital)
+	_store , genders(`genders') outcome(`var')
+	local c=`c'+1
+	estadd local col = "(`c')"
+	estadd local cell = "\checkmark"
+	estadd local state = "\checkmark"
+	estadd local time = "\checkmark"
+	estadd local metro = "\checkmark"
+	estadd local race = "\checkmark"
+	estadd local age = "\checkmark"
+	estadd local edu = "\checkmark"
+	estadd local sexi = "\checkmark"
+	estadd local mari = "\checkmark"
+		
+	esttab est1 est2 est3 est4 est5 using Tables_and_Figures/`var'_controls.tex,		///
+	stats(																		///
+		col																		/// Column titles
+		blank fem_cismen fem_cismen_se											/// Cismen row
+		blank masc_ciswomen masc_ciswomen_se fem_ciswomen fem_ciswomen_se		/// Ciswomen row
+		blank masc_m2f masc_m2f_se fem_m2f fem_m2f_se inc_m2f inc_m2f_se		/// M2F row
+		blank masc_f2m masc_f2m_se fem_f2m fem_f2m_se inc_f2m inc_f2m_se		/// F2M rows
+		blank masc_non masc_non_se fem_non fem_non_se inc_non inc_non_se		/// Nonconforming rows
+		N cell state time metro race age edu sexi mari,							/// Bottom rows
+		fmt(0)																	/// Rounding
+		label(																	/// ROW LABELS
+			" "																	///
+			"\midrule\underline{\textit{Cismen}}" 								/// ROW LABEL 1
+			"\addlinespace[0.1cm]\hspace{.25cm}Feminine"						///
+			" "																	///
+			"\addlinespace[0.3cm]\underline{\textit{Ciswomen}}" 				/// 
+			"\addlinespace[0.1cm]\hspace{.25cm}Masculine"						///
+			" "																	///
+			"\addlinespace[0.1cm]\hspace{.25cm}Feminine"						///
+			" "																	///
+			"\addlinespace[0.3cm]\underline{\textit{Transwomen}}" 				/// 
+			"\addlinespace[0.1cm]\hspace{.25cm}Masculine"						///
+			" "																	///
+			"\addlinespace[0.1cm]\hspace{.25cm}Feminine"						///
+			" "																	///
+			"\addlinespace[0.1cm]\hspace{.25cm}Incongruent"						///
+			" "																	///
+			"\addlinespace[0.3cm]\underline{\textit{Transmen}}" 				/// 
+			"\addlinespace[0.1cm]\hspace{.25cm}Masculine"						///
+			" "																	///
+			"\addlinespace[0.1cm]\hspace{.25cm}Feminine"						///
+			" "																	///
+			"\addlinespace[0.1cm]\hspace{.25cm}Incongruent"						///
+			" "																	///
+			"\addlinespace[0.3cm]\underline{\textit{Gender nonconforming}}" 	/// 
+			"\addlinespace[0.1cm]\hspace{.25cm}Masculine"						///
+			" "																	///
+			"\addlinespace[0.1cm]\hspace{.25cm}Feminine"						///
+			" "																	///
+			"\addlinespace[0.1cm]\hspace{.25cm}Incongruent"						///
+			" "																	///
+			"\addlinespace[0.1cm]\midrule Observations"							/// 
+			"Survey-adults interaction"											/// 
+			"State fixed effects"												///
+			"Time fixed effects"												/// 
+			"Metropolitan status"												///
+			"Race"																///
+			"Age"																///
+			"Education"															///
+			"Sexuality"															///
+			"Marital status"													///
+			)																	///
+		)																		///
+	keep( ) replace nomtitles nonotes booktabs nogap nolines nolines nonum		///
+	prehead(\begin{tabular}{l*{11}{x{2.5cm}}}\toprule) 							///
+	postfoot(\bottomrule \end{tabular})  substitute(_ _ { { } } )
+
 	
 }
 

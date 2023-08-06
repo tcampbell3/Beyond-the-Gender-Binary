@@ -25,24 +25,15 @@ g masc_cismen = (cismen==1&express>${thresh})
 g fem_cismen = (cismen==1&express<=${thresh})
 g masc_ciswomen = (ciswomen==1&express>${thresh})
 g fem_ciswomen = (ciswomen==1&express<=${thresh})
-g masc_m2f = (m2f==1&express>${thresh})
-g fem_m2f = (m2f==1&express<=${thresh})
-g masc_f2m = (f2m==1&express>${thresh})
-g fem_f2m = (f2m==1&express<=${thresh})
-g masc_non = (non==1&express>${thresh})
-g fem_non = (non==1&express<=${thresh})
-g masc_masc_m2f = (m2f == 1 & sex == 1 & express >${thresh})
-g fem_masc_m2f = (m2f == 1 & sex == 1 & express <=${thresh})
-g masc_fem_m2f = (m2f == 1 & sex == 2 & express >${thresh})
-g fem_fem_m2f = (m2f == 1 & sex == 2 & express <=${thresh})
-g masc_masc_f2m = (f2m == 1 & sex == 1 & express >${thresh})
-g fem_masc_f2m = (f2m == 1 & sex == 1 & express <=${thresh})
-g masc_fem_f2m = (f2m == 1 & sex == 2 & express >${thresh})
-g fem_fem_f2m = (f2m == 1 & sex == 2 & express <=${thresh})
-g masc_masc_non = (non == 1 & sex == 1 & express >${thresh})
-g fem_masc_non = (non == 1 & sex == 1 & express <=${thresh})
-g masc_fem_non = (non == 1 & sex == 2 & express >${thresh})
-g fem_fem_non = (non == 1 & sex == 2 & express <=${thresh})	
+g masc_m2f = (m2f == 1 & sex == 1 & express >${thresh})
+g inc_m2f = (m2f == 1 & sex == 1 & express <=${thresh}) | (m2f == 1 & sex == 2 & express >${thresh})
+g fem_m2f = (m2f == 1 & sex == 2 & express <=${thresh})
+g masc_f2m = (f2m == 1 & sex == 1 & express >${thresh})
+g inc_f2m = (f2m == 1 & sex == 1 & express <=${thresh}) | (f2m == 1 & sex == 2 & express >${thresh})
+g fem_f2m = (f2m == 1 & sex == 2 & express <=${thresh})
+g masc_non = (non == 1 & sex == 1 & express >${thresh})
+g inc_non = (non == 1 & sex == 1 & express <=${thresh}) | (non == 1 & sex == 2 & express >${thresh})
+g fem_non = (non == 1 & sex == 2 & express <=${thresh})	
 
 * Cellphone survey
 gen cellphone=(qstver>=20)
@@ -71,18 +62,12 @@ replace sexuality=4 if inlist(sxorient,7,9)
 replace sexuality=99 if sxorient==.
 	
 * Employment indicators
-gen homemaker = (employ1 == 5)
-replace homemaker=. if inlist(employ1, 9, .)
-
 gen employed = inlist(employ1,1,2)
 replace employed=. if inlist(employ1, 9, .)
-
 gen laborforce = inlist(employ1, 1, 2, 3, 4)
 replace laborforce = . if inlist(employ1, 9, .)
-
 gen unemployed = inlist(employ1, 3, 4)
 replace unemployed = . if inlist(employ1, 9, .) | inlist(laborforce, 0)
-
 
 * Family income: average values, top bracket lower bound
 replace income=5000 if(income==1)
@@ -117,7 +102,8 @@ replace income=. if(income==9)
 	replace poverty_thresh =. if _age65yr>1 //_age65yr=2 if 65 or older, =3 if age missing
 	gen poverty = (income<=poverty_thresh)
 	replace poverty=. if(income==.|poverty_thresh==.)
-
+	replace numadult = 99 if numadult==.
+	
 * Metro
 gen metro=(mscode<5)
 replace metro=99 if mscode==.
@@ -132,10 +118,10 @@ merge m:1 state using "data\region.dta", nogen keep(1 3)
 * Time (year-month)
 egen time = group(year fmonth)
 
-keep 	id cellphone age marital education race sexuality homemaker employed unemployed ///
-		laborforce poverty express sex _psu _ststr _llcpwt perc ///
-		m2f f2m cismen ciswomen non year fmonth state trans metro division masc_* fem_* time
-
+* Save
+keep 	id cellphone age marital education race sexuality employed unemployed 	///
+		laborforce poverty express sex _psu _ststr _llcpwt perc numadult time	///
+		m2f f2m cismen ciswomen non year fmonth state trans metro division masc_* fem_* inc_*
 compress
 save "data\dta\final.dta", replace
 

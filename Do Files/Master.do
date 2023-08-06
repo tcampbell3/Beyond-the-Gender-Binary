@@ -1,7 +1,7 @@
 ********************************************************************************
-************************							****************************
-************************			Set Up			****************************
-************************							****************************
+************************							 ****************************
+************************			 Set Up			 ****************************
+************************ (Last ran from top: 7/2022) ****************************
 ********************************************************************************
 
 * Clear and set working directory
@@ -11,13 +11,8 @@ set more off
 global path "C:\Users\travi\Dropbox\Beyond the Gender Binary"
 cd "${path}"
 
-* Define control groups for benchmark specifcation (X) and robustness checks
-global X "i.(race sexuality age marital education) i.(state time metro cellphone)"
-global g1 " "
-global g2 "i.(state time cellphone)"
-global g3 "i.(state time metro cellphone)"
-global g4 "i.(race age education) i.(state time metro cellphone)"
-global g5 "i.(race sexuality age marital education) i.(state time metro cellphone)"
+* Define control groups for benchmark specifcation
+global X "race sexuality age marital education state time metro numadult#cellphone"
 
 * Define gender typical expression estimator 
 global GTE_estimator = "nn_1_1"			// estimators: nn_X_Y, cvlasso, logit, ols, steplogit
@@ -26,14 +21,14 @@ global GTE_estimator = "nn_1_1"			// estimators: nn_X_Y, cvlasso, logit, ols, st
 global impute_cap = 30					
 
 * Gender expression diagnostic thresholds
-global thresh = .39
+global thresh = .40
 
 
 ***********************************************************
 ******  	  Section 1: Individual Datasets 		 ******
 ***********************************************************
 
-* Import BRFSS and define sample
+/* Import BRFSS and define sample
 do "Do Files/1 - BRFSS.do"
 
 * Poverty threshoolds  
@@ -63,7 +58,7 @@ winexec "C:\Program Files\Stata16\StataMP-64.exe" do "Do Files/2 - GTE regressio
 forvalues i=1/4{
 	winexec "C:\Program Files\Stata16\StataMP-64.exe" do "Do Files/2 - Neural net estimates `i'.do"
 }
-
+*/
 * Final gender-typical expression estimate
 do "Do Files/2 - Gender typical expression.do"
 
@@ -88,44 +83,47 @@ do "Do Files/3 - Variable Creation.do"
 ***********************************************************
 ******     			Section 4: 	Results			 	 ******
 ***********************************************************
-	
+
+* Lit Review Table
+do "Do Files/4 - Lit Review"
+
 * Map
 do "Do Files/4 - Map.do"
 
 * Summary statistics table
 texdoc do "Do Files/4 - Summary Statistics"
 
-* Lit Review Table
-do "Do Files/4 - Lit Review"
+* Baseline regression by gender identity and sex
+do "Do files/4 - Regression Figures Identity"
+
+* Baseline estimate table
+do "Do Files/4 - Baseline estimates.do"
+do "Do Files/4 - Baseline estimates (within).do"
+
+* Robustness to only cellphone
+do "Do Files/4 - Baseline estimates (cellphone).do"
 
 * Estimate robustness checks subsetting controls tables
 do "Do Files/4 - Robust Control Table.do"
 
-* Cts table (note, controls are not interacted due to small sample size)
-texdoc do "Do Files/4 - Results by Gender"
-
-* Benchmark specification tables
+* Estimate robustness checks using different combinations of gender identity, expression, and perception
 do "Do Files/4 - Benchmark identity.do"
 do "Do Files/4 - Benchmark expression.do"
 do "Do Files/4 - Benchmark perception.do"
+do "Do Files/4 - Benchmark expression perception.do"
 
-******    Figures    ******
+* Cts table
+texdoc do "Do Files/4 - Results by Gender"
 
-cd "${path}"
-foreach var in laborforce homemaker poverty unemployed employ{
+* Other figures
+foreach var in laborforce employed unemployed{
 	
 	* Global outcome
 	global outcome = "`var'"
 	
 	*Labels
-	if "`var'" == "employ"{
+	if "`var'" == "employed"{
 		global ytitle "Employment rate"
-	}
-	if "`var'" == "homemaker"{
-		global ytitle "Homemaking rate"
-	}
-	if "`var'" == "poverty"{
-		global ytitle "Poverty rate"
 	}
 	if "`var'" == "laborforce"{
 		global ytitle "Labor force participation rate"
@@ -133,24 +131,9 @@ foreach var in laborforce homemaker poverty unemployed employ{
 	if "`var'" == "unemployed"{
 		global ytitle "Unemployment rate"
 	}
-	
-	* Regression Figure by Identity
-	global ytitle1 "${ytitle} relative to cismen"
-	global ytitle2 ""
-	global yaxis ""
-	do "Do files/4 - Regression Figures Identity"
 
-	* Regression Figures by Identity-Expression
-	global ytitle1 "${ytitle} relative"
-	global ytitle2 "to masculine cismen"
-	global yaxis "ysc(titlegap(.5cm))"
-	do "Do files/4 - Regression Figures Expression"
-	
-	* Regression Figures by Identity-Expression-Perception	
-	global ytitle1 "${ytitle} relative"
-	global ytitle2 "to masculine cismen"
-	global yaxis "ysc(titlegap(.5cm))"
-	do "Do files/4 - Regression Figures Perception"
+	* Baseline Regression Figures
+	do "Do files/4 - Baseline Regression Figure"
 
 	* Continuous Figures (Total)
 	global color "red"
@@ -195,7 +178,3 @@ foreach var in laborforce homemaker poverty unemployed employ{
 	do "Do Files/4 - Expression_plot_controls"
 	
 }
-
-
-
-

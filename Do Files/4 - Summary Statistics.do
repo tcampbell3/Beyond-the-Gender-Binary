@@ -50,10 +50,10 @@ foreach value in 1 2 3 5 9{
 	// Build Table
 *********************
 
-local genders = "masc_cismen fem_cismen masc_ciswom fem_ciswom masc_masc_m2f masc_fem_m2f fem_masc_m2f fem_fem_m2f masc_masc_f2m masc_fem_f2m fem_masc_f2m fem_fem_f2m masc_masc_non masc_fem_non fem_masc_non fem_fem_non"	
+local genders = "masc_cismen fem_cismen masc_ciswom fem_ciswom masc_m2f fem_m2f inc_m2f masc_f2m fem_f2m inc_f2m  masc_non fem_non inc_non"	
 
 *Get Mean
-foreach dep in laborforce employ unemployed homemaker poverty d_2014 d_2015 d_2016 d_2017  ///
+foreach dep in laborforce employ unemployed poverty d_2014 d_2015 d_2016 d_2017  ///
  d_metro_0 d_metro_1 d_metro_99 d_age_0 d_age_1 d_age_2 d_age_3 d_age_4 ///
  d_marital_0 d_marital_1 d_marital_2 d_marital_99 cellphone d_edu_1 d_edu_2 d_edu_3 d_edu_4 d_edu_9 ///
  d_sex_1 d_sex_2 d_sex_3 d_sex_4 d_sex_99 d_r_1 d_r_2 d_r_3 d_r_5 d_r_9 {
@@ -135,6 +135,7 @@ foreach g in `genders'{
 	}
 	
 	* up index
+	local firstrow="`firstrow' & (`i')"
 	local i = `i' + 1
 }
 
@@ -145,21 +146,16 @@ foreach g in `genders'{
 texdoc i "Tables_and_Figures/sumstat", replace
 tex \begin{tabular}{l*{16}{x{1.25cm}}}
 tex \toprule[.05cm]
+tex & \multicolumn{2}{c}{Cismen} & \multicolumn{2}{c}{Ciswomen}  & \multicolumn{3}{c}{Transwomen} & \multicolumn{3}{c}{Transmen} & \multicolumn{3}{c}{Nonconforming} \\\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}\cmidrule(lr){12-14}
+tex & Masc & Fem & Masc & Fem & Masc & Fem &  Inc & Masc & Fem &  Inc & Masc & Fem &  Inc \\
 tex `firstrow' \\
 tex \midrule
-
-* gender
-tex \textit{Gender}&  \\
-tex \hspace{.25cm}Identity `identity' \\
-tex \hspace{.25cm}Expression `expression' \\
-tex \hspace{.25cm}Perception `perception' \\\\
 
 * Labor market outcomes of interest
 tex Labor Force `row_laborforce'\\
 tex Employment `row_employ'\\
 tex Unemployment `row_unemployed'\\
-tex Homemaker `row_poverty'\\
-tex Poverty `row_homemaker'\\\\
+tex Poverty `row_poverty'\\\\
 
 * race
 tex \textit{Race}&  \\

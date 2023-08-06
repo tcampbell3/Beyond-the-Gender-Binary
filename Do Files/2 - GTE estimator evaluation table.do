@@ -122,14 +122,15 @@ foreach col in ols logit steplogit cvlogit nn_1_1 {
 * Save Table
 esttab col1 col2 col3 col4 col5 col_blank col6 col7 col8 col9 col10 using Tables_and_Figures/GTB_est_eval.tex,	///
 	stats(																		///
+		estimator																///
 		blank rmse_2014 pc_2014 pc_ciswomen_2014 pc_cismen_2014 N_ciswomen_2014 N_cismen_2014	/// 2014 ROWS
 		blank rmse_2015 pc_2015 pc_ciswomen_2015 pc_cismen_2015 N_ciswomen_2015 N_cismen_2015	/// 2015 ROWS
 		blank rmse_2016 pc_2016 pc_ciswomen_2016 pc_cismen_2016 N_ciswomen_2016 N_cismen_2016	/// 2016 ROWS
 		blank rmse_2017 pc_2017 pc_ciswomen_2017 pc_cismen_2017 N_ciswomen_2017 N_cismen_2017	/// 2017 ROWS
 		blank rmse_2018 pc_2018 pc_ciswomen_2018 pc_cismen_2018 N_ciswomen_2018 N_cismen_2018	/// 2018 ROWS
-		estimator,																///
-		label(																	/// ROW LABELS
-			"\addlinespace[0.3cm]\underline{\textit{2014}}" 					/// ROW LABEL 1
+		,label(																	/// ROW LABELS
+			"\addlinespace[0.1cm] Estimator"									/// 
+			"\midrule\addlinespace[0.3cm]\underline{\textit{2014}}" 			/// ROW LABEL 1
 			"\addlinespace[0.1cm]\hspace{.25cm}$\sqrt{MSE}$" 					/// ROW LABEL 2
 			"\addlinespace[0.1cm]\hspace{.25cm}\% Correct" 						/// ROW LABEL 3
 			"\addlinespace[0.1cm]\hspace{.25cm}\% Correct ciswomen" 			/// 
@@ -164,7 +165,6 @@ esttab col1 col2 col3 col4 col5 col_blank col6 col7 col8 col9 col10 using Tables
 			"\addlinespace[0.1cm]\hspace{.25cm}\% Correct cismen" 				/// 
 			"\addlinespace[0.1cm]\hspace{.25cm}Observations ciswomen" 			/// 
 			"\addlinespace[0.1cm]\hspace{.25cm}Observations cismen" 			/// 
-			"\addlinespace[0.3cm] \midrule Estimator"							/// 
 			)																	///
 		)																		///
 	keep( ) replace nomtitles nonotes booktabs nogap nolines nolines nonum		///
